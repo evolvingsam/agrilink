@@ -13,14 +13,13 @@ def run_matching_cycle() -> int:
 
     for order in open_orders:
         with transaction.atomic():
-            # Find eligible listings (same crop, graded or ungraded, quantity >= order.quantity_kg)
-            # For simplicity, we match a single listing that can fulfill the order.
-            # In a real app, we might match multiple listings to fulfill one order.
+            # Find eligible listings (same crop, graded or ungraded, quantity >= order.quantity_kg, price <= max_price)
             eligible_listings = ProduceListing.objects.filter(
                 status__in=[ProduceListing.Status.PENDING, ProduceListing.Status.GRADED],
                 crop_type=order.crop_type,
                 quantity_kg__gte=order.quantity_kg,
-                quality_grade__in=[order.required_grade, ProduceListing.Grade.A] # Just an example, accept requested or better
+                price_per_kg__lte=order.max_price_per_kg,
+                quality_grade__in=[order.required_grade, ProduceListing.Grade.A, ProduceListing.Grade.UNGRADED]
             ).order_by('price_per_kg')
 
             if eligible_listings.exists():
