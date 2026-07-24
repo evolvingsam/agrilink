@@ -187,3 +187,61 @@ def chat(conversation, user_message: str, user) -> dict:
     action_result = _execute_action(action, user) if action else None
 
     return {'reply': reply, 'action_result': action_result}
+
+
+def transcribe_audio(audio_file) -> str:
+    """
+    Takes an uploaded audio file (Django UploadedFile), encodes it,
+    and sends it to Gemini 1.5 Flash to transcribe and translate to English.
+    """
+    import base64
+    
+    api_key = settings.GOOGLE_AI_API_KEY
+    if not api_key:
+        return "Audio transcription requires a Google AI API key."
+        
+    if api_key.startswith('sk-or-v1'):
+        # Fallback for OpenRouter (if they don't support audio, we just return a message)
+        logger.warning('Audio transcription called with an OpenRouter key. Native audio may not be supported.')
+        return "Audio transcription is currently only supported with a direct Google AI API key."
+
+    # Read and encode the file
+    audio_data = audio_file.read()
+    b64_data = base64.b64encode(audio_data).decode('utf-8')
+    mime_type = audio_file.content_type or 'audio/webm'
+
+    url = f'{GOOGLE_AI_BASE_URL}/gemini-1.5-flash:generateContent?key={api_key}'
+    
+    prompt = (
+        "Transcribe the following audio. "
+        "If the audio is in Hausa, Yoruba, Igbo, or Pidgin, translate it to English. "
+        "Return ONLY the English text without any additional commentary or formatting."
+    )
+    
+    payload = {
+        'contents': [
+            {
+                'parts': [
+                    {
+                        'inlineData': {
+                            'mimeType': mime_type,
+                            'data': b64_data
+                        }
+                    },
+                    {'text': prompt}
+                ]
+            }
+        ]
+    }
+
+    response = None
+    try:
+        response = requests.post(url, json=payload, timeout=60)
+        response.raise_for_status()
+        result = response.json()
+        return result['candidates'][0]['content']['parts'][0]['text'].strip()
+    except requests.RequestException as exc:
+        logger.error('Gemini audio API error: %s', exc)
+        if response is not None:
+            logger.error('Response: %s', response.text)
+        raise Exception('Failed to transcribe audio') from exc

@@ -72,3 +72,23 @@ class NewConversationView(APIView):
     def post(self, request):
         conversation = Conversation.objects.create(farmer=request.user)
         return Response({'conversation_id': conversation.id})
+
+class TranscribeVoiceView(APIView):
+    """
+    POST /api/assistant/transcribe/
+    Expects multipart/form-data with an 'audio' file.
+    Transcribes the audio and returns the text in English.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        audio_file = request.FILES.get('audio')
+        if not audio_file:
+            return Response({'error': 'No audio file provided'}, status=400)
+            
+        from .service import transcribe_audio
+        try:
+            transcription = transcribe_audio(audio_file)
+            return Response({'text': transcription})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

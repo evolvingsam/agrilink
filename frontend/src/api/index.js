@@ -30,6 +30,9 @@ export const assistantApi = {
   newConversation: () => api.post('/assistant/new/'),
   chat: (data) => api.post('/assistant/chat/', data),
   history: (conversationId) => api.get(`/assistant/history/${conversationId}/`),
+  transcribeAudio: (formData) => api.post('/assistant/transcribe/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };
 
 export const ordersApi = {

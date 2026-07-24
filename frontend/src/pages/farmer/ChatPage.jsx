@@ -10,7 +10,11 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [language, setLanguage] = useState('en');
   const [error, setError] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const bottomRef = useRef();
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   // Scroll to bottom on new message
   useEffect(() => {
@@ -40,6 +44,60 @@ export default function ChatPage() {
     },
     onError: (err) => setError(getErrorMessage(err)),
   });
+
+  const transcribeMutation = useMutation({
+    mutationFn: (blob) => {
+      const formData = new FormData();
+      formData.append('audio', blob, 'audio.webm');
+      return assistantApi.transcribeAudio(formData);
+    },
+    onSuccess: (res) => {
+      if (res.data.text) {
+        setInput(res.data.text);
+      } else if (res.data.error) {
+        setError(res.data.error);
+      }
+    },
+    onError: (err) => setError(getErrorMessage(err)),
+    onSettled: () => setIsTranscribing(false)
+  });
+
+  async function toggleRecording() {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      return;
+    }
+
+    try {
+      setError('');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        setIsRecording(false);
+        setIsTranscribing(true);
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        transcribeMutation.mutate(audioBlob);
+        
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Microphone error:', err);
+      setError('Could not access microphone. Please check permissions.');
+    }
+  }
 
   function handleSend() {
     const text = input.trim();
@@ -127,6 +185,14 @@ export default function ChatPage() {
       {error && <div className="alert alert-error" style={{ margin: 'var(--space-2) 0' }}>{error}</div>}
 
       <div className="chat-input-row">
+        <button
+          className={`btn mic-btn ${isRecording ? 'recording' : ''}`}
+          onClick={toggleRecording}
+          disabled={isTranscribing || mutation.isPending}
+          title={isRecording ? "Stop recording" : "Record voice message"}
+        >
+          {isTranscribing ? '⏳' : isRecording ? '🛑' : '🎤'}
+        </button>
         <textarea
           className="form-textarea chat-textarea"
           rows={2}
