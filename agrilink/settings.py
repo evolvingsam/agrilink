@@ -89,12 +89,9 @@ DATABASES = {
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
-# Password validation
+# Password validation (relaxed for demo — remove the strict validators)
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 LANGUAGE_CODE = 'en-us'
