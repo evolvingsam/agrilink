@@ -6,9 +6,13 @@ from farmers.models import CropType
 import os
 
 try:
-    import google.generativeai as genai
+    from google import genai as _genai_module
+    genai = _genai_module
 except ImportError:
-    genai = None
+    try:
+        import google.generativeai as genai
+    except ImportError:
+        genai = None
 
 def calculate_market_trends(region_id=None):
     """
@@ -97,20 +101,20 @@ def _generate_summary_alert(trends):
     max_surge = max([float(t['trend_percentage'].replace("%", "").replace("+", "")) for t in up_trends])
 
     api_key = os.getenv("GOOGLE_AI_API_KEY")
-    if api_key and genai:
+    if api_key:
         try:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-1.5-flash") # Use flash for quick text gen
-            
+            import requests as _req
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
             prompt = (
                 f"Write a 1-2 sentence alert for farmers about market prices. "
                 f"Data: {crop_str} are in high demand, prices surged by up to {max_surge}%. "
                 f"Keep it professional and encouraging."
             )
-            response = model.generate_content(prompt)
-            if response.text:
-                return response.text.strip()
+            payload = {'contents': [{'role': 'user', 'parts': [{'text': prompt}]}]}
+            resp = _req.post(url, json=payload, timeout=10)
+            if resp.ok:
+                return resp.json()['candidates'][0]['content']['parts'][0]['text'].strip()
         except Exception:
-            pass # Fallback to template
+            pass  # Fallback to template
 
     return f"{crop_str} are currently in high demand. Prices have surged by up to {max_surge:.0f}% this week."
