@@ -308,6 +308,7 @@ h1, h2, h3, h4 {
 .badge-amber  { background: var(--color-harvest-bg); color: #7a5800; border-color: var(--color-harvest); }
 .badge-red    { background: var(--color-dusk-bg); color: var(--color-dusk); border-color: var(--color-dusk); }
 .badge-blue   { background: var(--color-sky-bg); color: var(--color-sky); border-color: var(--color-sky); }
+.badge-purple { background: #f3f0ff; color: #6d28d9; border-color: #a78bfa; }
 .badge-gray   { background: var(--color-straw); color: var(--color-stone); border-color: var(--color-fence); }
 .badge-brown  { background: #f0e6dd; color: var(--color-bark); border-color: var(--color-clay); }
 
@@ -555,3 +556,20 @@ tr:hover td {
 ::-webkit-scrollbar-track { background: var(--color-field); }
 ::-webkit-scrollbar-thumb { background: var(--color-fence); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-clay); }
+
+/* ===================================================
+   Animations
+   =================================================== */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0%   { transform: scale(0.8); opacity: 0; }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* rust color for destructive actions */
+:root { --color-rust: #c62828; }

@@ -18,7 +18,7 @@ urlpatterns = [
     path('api/produce/', include('farmers.urls')),
     path('api/grading/', include('grading.urls')),
     path('api/assistant/', include('ai_assistant.urls')),
-    path('api/', include('matching.urls')),
+    path('api/orders/', include('matching.urls')),
     path('api/payments/', include('payments.urls')),
     path('api/logistics/', include('logistics.urls')),
     path('api/market/', include('market.urls')),

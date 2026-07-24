@@ -88,6 +88,16 @@
   color: var(--color-bark);
 }
 
+.navbar-wallet {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-leaf);
+  background: var(--color-seedling);
+  border: 1px solid var(--color-leaf-light);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+}
+
 @media (max-width: 768px) {
   .navbar-link-label { display: none; }
   .navbar-username { display: none; }

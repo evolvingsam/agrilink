@@ -21,11 +21,15 @@ class MatchSerializer(serializers.ModelSerializer):
     order_id = serializers.IntegerField(source='order.id', read_only=True)
     farmer_name = serializers.CharField(source='listing.farmer.username', read_only=True)
     buyer_name = serializers.CharField(source='order.buyer.username', read_only=True)
+    price_per_kg = serializers.DecimalField(
+        source='listing.price_per_kg', max_digits=10, decimal_places=2, read_only=True
+    )
+    quality_grade = serializers.CharField(source='listing.quality_grade', read_only=True)
 
     class Meta:
         model = Match
         fields = [
             'id', 'listing_id', 'order_id', 'farmer_name', 'buyer_name',
-            'match_score', 'status', 'created_at',
+            'price_per_kg', 'quality_grade', 'match_score', 'status', 'created_at',
         ]
         read_only_fields = fields

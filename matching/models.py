@@ -8,7 +8,9 @@ class BuyerOrder(models.Model):
 
     class Status(models.TextChoices):
         OPEN = 'open', 'Open'
-        MATCHED = 'matched', 'Matched'
+        WAITING_FOR_PAYMENT = 'waiting_for_payment', 'Waiting for Payment'
+        PROCESSING = 'processing', 'Processing'
+        DELIVERY_IN_PROCESS = 'delivery_in_process', 'Delivery in Process'
         COMPLETED = 'completed', 'Completed'
         CANCELLED = 'cancelled', 'Cancelled'
 

@@ -20,6 +20,10 @@ class User(AbstractUser):
         default=Role.FARMER,
     )
     phone = models.CharField(max_length=20, blank=True)
+    wallet_balance = models.DecimalField(
+        max_digits=14, decimal_places=2, default=500000.00,
+        help_text='Demo wallet balance in Naira (₦)'
+    )
 
     class Meta:
         verbose_name = 'User'

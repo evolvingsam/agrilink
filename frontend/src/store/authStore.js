@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: !!localStorage.getItem('access_token'),
 
   setUser: (user) => set({ user, isAuthenticated: true }),
+  updateWalletBalance: (newBalance) =>
+    set({ user: { ...get().user, wallet_balance: newBalance } }),
   logout: () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');

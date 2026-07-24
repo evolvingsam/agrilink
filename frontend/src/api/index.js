@@ -36,11 +36,15 @@ export const ordersApi = {
   getOrders: (params) => api.get('/orders/', { params }),
   getOrder: (id) => api.get(`/orders/${id}/`),
   createOrder: (data) => api.post('/orders/', data),
+  payOrder: (id) => api.post(`/orders/${id}/pay/`),
+  acceptDelivery: (id) => api.post(`/orders/${id}/accept-delivery/`),
+  completeDelivery: (id) => api.post(`/orders/${id}/complete-delivery/`),
+  cancelOrder: (id) => api.delete(`/orders/${id}/cancel/`),
 };
 
 export const matchingApi = {
-  getResults: (orderId) => api.get(`/matching/results/${orderId}/`),
-  runMatching: () => api.post('/matching/run/'),
+  getResults: (orderId) => api.get(`/orders/matching/results/${orderId}/`),
+  runMatching: () => api.post('/orders/matching/run/'),
 };
 
 export const logisticsApi = {

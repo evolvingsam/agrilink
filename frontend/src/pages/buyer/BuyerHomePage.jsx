@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { produceApi, ordersApi, matchingApi } from '../../api';
-import { formatNGN, formatDate, getStatusBadgeClass, getGradeBadgeClass, getErrorMessage } from '../../utils/helpers';
+import { produceApi, ordersApi } from '../../api';
+import { formatNGN, formatDate, getGradeBadgeClass, getErrorMessage } from '../../utils/helpers';
 
 export default function BuyerHomePage() {
   const queryClient = useQueryClient();
@@ -11,7 +11,7 @@ export default function BuyerHomePage() {
   const [page, setPage] = useState(1);
 
   const [orderForm, setOrderForm] = useState({ crop_type: '', quantity_kg: '', max_price_per_kg: '', required_grade: 'A' });
-  const [orderSuccess, setOrderSuccess] = useState('');
+  const [matchResult, setMatchResult] = useState(null); // { matched: bool, message: string }
   const [orderError, setOrderError] = useState('');
 
   const { data: cropsData } = useQuery({
@@ -28,8 +28,8 @@ export default function BuyerHomePage() {
 
   const orderMutation = useMutation({
     mutationFn: (data) => ordersApi.createOrder(data),
-    onSuccess: () => {
-      setOrderSuccess('Order placed successfully!');
+    onSuccess: (res) => {
+      setMatchResult({ matched: res.data.matched, message: res.data.match_message });
       setOrderForm({ crop_type: '', quantity_kg: '', max_price_per_kg: '', required_grade: 'A' });
       queryClient.invalidateQueries(['orders']);
     },
@@ -39,6 +39,13 @@ export default function BuyerHomePage() {
   const crops = cropsData?.results ?? [];
   const listings = listingsData?.results ?? [];
   const totalPages = listingsData?.count ? Math.ceil(listingsData.count / 20) : 1;
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setMatchResult(null);
+    setOrderError('');
+    orderMutation.mutate(orderForm);
+  }
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 'var(--space-8)', alignItems: 'start' }}>
@@ -94,6 +101,24 @@ export default function BuyerHomePage() {
                   <div className="text-sm text-muted">📍 {l.collection_point_name || 'Pickup arranged'}</div>
                   <div className="text-sm text-muted">🌾 Farmer: {l.farmer_name}</div>
                   <div className="text-sm text-muted">Harvested: {formatDate(l.harvest_date)}</div>
+                  <button
+                    className="btn btn-secondary w-full"
+                    style={{ marginTop: 'var(--space-4)' }}
+                    onClick={() => {
+                      const cropId = crops.find(c => c.name === l.crop_name)?.id || '';
+                      setOrderForm({
+                        crop_type: cropId,
+                        quantity_kg: l.quantity_kg,
+                        max_price_per_kg: l.price_per_kg,
+                        required_grade: l.quality_grade === 'ungraded' ? 'A' : l.quality_grade
+                      });
+                      setMatchResult(null);
+                      setOrderError('');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    🛒 Order This Spec
+                  </button>
                 </div>
               ))}
             </div>
@@ -113,13 +138,36 @@ export default function BuyerHomePage() {
       <div className="card" style={{ position: 'sticky', top: 80 }}>
         <h2 className="card-title">🛒 Place an Order</h2>
         <p className="text-sm text-muted" style={{ marginBottom: 'var(--space-4)' }}>
-          Specify what you need and let the system find matching produce.
+          Specify what you need and let the AI find matching produce.
         </p>
 
-        {orderSuccess && <div className="alert alert-success" style={{ marginBottom: 'var(--space-4)' }}>{orderSuccess}</div>}
+        {/* AI Matching status feedback */}
+        {orderMutation.isPending && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
+            background: 'var(--color-field)', borderRadius: 'var(--radius-sm)',
+            padding: 'var(--space-3) var(--space-4)', marginBottom: 'var(--space-4)',
+            fontSize: 'var(--text-sm)',
+          }}>
+            <span className="spinner" style={{ width: 16, height: 16, flexShrink: 0 }} />
+            <span>🤖 AI is searching for matching produce…</span>
+          </div>
+        )}
+
+        {matchResult && !orderMutation.isPending && (
+          <div className={`alert ${matchResult.matched ? 'alert-success' : 'alert-info'}`} style={{ marginBottom: 'var(--space-4)' }}>
+            {matchResult.matched ? '✅' : '⏳'} {matchResult.message}
+            {matchResult.matched && (
+              <div style={{ marginTop: 'var(--space-2)', fontWeight: 600 }}>
+                → Go to <strong>My Orders</strong> to pay and confirm.
+              </div>
+            )}
+          </div>
+        )}
+
         {orderError && <div className="alert alert-error" style={{ marginBottom: 'var(--space-4)' }}>{orderError}</div>}
 
-        <form onSubmit={(e) => { e.preventDefault(); setOrderSuccess(''); setOrderError(''); orderMutation.mutate(orderForm); }}>
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label" htmlFor="order-crop">Crop *</label>
             <select id="order-crop" className="form-select" value={orderForm.crop_type} onChange={(e) => setOrderForm((f) => ({ ...f, crop_type: e.target.value }))} required>
@@ -144,7 +192,7 @@ export default function BuyerHomePage() {
             </select>
           </div>
           <button type="submit" className="btn btn-primary w-full" disabled={orderMutation.isPending}>
-            {orderMutation.isPending ? <span className="spinner" /> : 'Submit Order'}
+            {orderMutation.isPending ? <span className="spinner" /> : '🤖 Submit & Find Match'}
           </button>
         </form>
       </div>

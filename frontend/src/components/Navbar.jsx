@@ -56,6 +56,11 @@ export default function Navbar() {
       </div>
 
       <div className="navbar-user">
+        {user?.role === 'buyer' && user?.wallet_balance != null && (
+          <span className="navbar-wallet" title="Demo Wallet Balance">
+            💰 ₦{Number(user.wallet_balance).toLocaleString('en-NG', { minimumFractionDigits: 0 })}
+          </span>
+        )}
         <span className="navbar-username">{user?.username}</span>
         <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
           Logout

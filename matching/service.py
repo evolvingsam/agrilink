@@ -33,11 +33,12 @@ def run_matching_cycle() -> int:
                     match_score=100.0, # Mock score
                 )
                 
-                # Update statuses
+                # Update listing status to MATCHED
                 best_listing.status = ProduceListing.Status.MATCHED
                 best_listing.save(update_fields=['status'])
-                
-                order.status = BuyerOrder.Status.MATCHED
+
+                # Advance the order to waiting_for_payment so the buyer can pay
+                order.status = BuyerOrder.Status.WAITING_FOR_PAYMENT
                 order.save(update_fields=['status'])
                 
                 matches_created += 1

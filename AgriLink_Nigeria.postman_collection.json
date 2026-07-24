@@ -1,0 +1,333 @@
+{
+  "info": {
+    "name": "AgriLink Nigeria MVP",
+    "description": "Postman Collection for AgriLink Nigeria backend endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register User (Farmer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_farmer\",\n  \"email\": \"farmer@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"password2\": \"SecurePass123!\",\n  \"first_name\": \"Musa\",\n  \"last_name\": \"Kano\",\n  \"role\": \"farmer\",\n  \"phone\": \"08012345678\",\n  \"state\": \"Kano\",\n  \"lga\": \"Kano Municipal\",\n  \"preferred_language\": \"ha\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login (Gets Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access) {",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_farmer\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login",
+                ""
+              ]
+            },
+            "description": "Logs in and automatically saves the `access_token` to Postman variables for future requests."
+          }
+        },
+        {
+          "name": "Get Profile (Me)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Produce Marketplace",
+      "item": [
+        {
+          "name": "Get Crop Types",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/produce/crops/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "produce",
+                "crops",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Produce Listing",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop_type\": 1,\n  \"quantity_kg\": \"150.00\",\n  \"price_per_kg\": \"450.00\",\n  \"harvest_date\": \"2026-07-20\",\n  \"notes\": \"Fresh harvest\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/produce/listings/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "produce",
+                "listings",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Listings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/produce/listings/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "produce",
+                "listings",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Photo (Triggers Grading)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/produce/listings/1/upload-photo/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "produce",
+                "listings",
+                "1",
+                "upload-photo",
+                ""
+              ]
+            },
+            "description": "Change '1' in the URL to your actual listing ID. In Postman, select a file for the 'photo' field."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. AI Assistant",
+      "item": [
+        {
+          "name": "Chat with AI",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I wan sell 50kg of tomato for 500 naira per kg\",\n  \"language\": \"pcm\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/assistant/chat/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "assistant",
+                "chat",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Chat History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/assistant/history/1/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "assistant",
+                "history",
+                "1",
+                ""
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
