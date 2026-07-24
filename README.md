@@ -95,6 +95,29 @@ Use this to explore all endpoints, view request/response schemas, and test the A
 
 ---
 
+## 🏗️ System Architecture
+
+AgriLink is built as a modern, decoupled web application:
+- **Frontend**: A React single-page application (SPA) built with Vite. It communicates with the backend via REST APIs and is hosted on **Vercel**.
+- **Backend**: A Django application providing RESTful APIs via Django REST Framework (DRF). It handles business logic, database operations (SQLite for dev, PostgreSQL for prod), and AI orchestration. It is hosted on **Render**.
+- **AI Integration**: Deep integration with **Google's Gemma 4** (via Google AI Studio) for text processing (Voice Assistant) and multimodal vision tasks (Produce Grading).
+- **Logistics Engine**: Uses **Google OR-Tools** to solve Vehicle Routing Problems (VRP) and dynamically generate dispatch routes based on orders and farm locations.
+
+---
+
+## 🔑 Test Accounts
+
+You can test the application using the following pre-configured accounts:
+
+| Role | Username | Password |
+|---|---|---|
+| **Buyer** | `godsown` | `mikky123` |
+| **Farmer** | `mrv_farmer` | `mikky123` |
+
+*(To test the Dispatcher features, create a user with the `dispatcher` role in the Django Admin panel).*
+
+---
+
 ## 🔮 Future Roadmap (On Hold for Hackathon MVP)
 
 - **Market Matching**: Algorithm to automatically connect buyer orders with graded produce listings based on proximity and shelf-life urgency.
