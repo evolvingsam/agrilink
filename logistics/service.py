@@ -3,8 +3,13 @@ import json
 import logging
 import requests
 from django.conf import settings
-from ortools.constraint_solver import routing_enums_pb2
-from ortools.constraint_solver import pywrapcp
+
+try:
+    from ortools.constraint_solver import routing_enums_pb2
+    from ortools.constraint_solver import pywrapcp
+    ORTOOLS_AVAILABLE = True
+except ImportError:
+    ORTOOLS_AVAILABLE = False
 from .models import DispatchRoute
 from matching.models import Match
 
@@ -83,10 +88,46 @@ def create_data_model(matches):
     return data
 
 def generate_routes() -> int:
-    """Finds optimal routes for pending matches using OR-Tools."""
+    """Finds optimal routes for pending matches using OR-Tools.
+    Falls back to a simple greedy order if OR-Tools is not available.
+    """
     matches = list(Match.objects.filter(status=Match.Status.PENDING_DELIVERY, routes__isnull=True))
     if not matches:
         return 0
+
+    if not ORTOOLS_AVAILABLE:
+        # Simple fallback: just create a route in match-order (good enough for demo)
+        waypoints = [{'name': 'Depot', 'lat': 0.0, 'lng': 0.0}]
+        for match in matches:
+            cp = match.listing.collection_point
+            buyer_profile = getattr(match.order.buyer, 'buyer_profile', None)
+            waypoints.append({
+                'name': f"Pickup: {cp.name} (Match {match.id})",
+                'lat': float(cp.latitude or 0), 'lng': float(cp.longitude or 0),
+                'type': 'pickup', 'match_id': match.id,
+            })
+            waypoints.append({
+                'name': f"Delivery: {buyer_profile.business_name if buyer_profile else match.order.buyer.username} (Match {match.id})",
+                'lat': float(buyer_profile.latitude or 0) if buyer_profile else 0,
+                'lng': float(buyer_profile.longitude or 0) if buyer_profile else 0,
+                'type': 'delivery', 'match_id': match.id,
+            })
+        waypoints.append({'name': 'Depot', 'lat': 0.0, 'lng': 0.0})
+
+        total_km = 0.0
+        for i in range(len(waypoints) - 1):
+            total_km += haversine(waypoints[i]['lat'], waypoints[i]['lng'],
+                                  waypoints[i+1]['lat'], waypoints[i+1]['lng'])
+
+        route = DispatchRoute.objects.create(
+            route_waypoints=waypoints,
+            estimated_distance_km=total_km,
+            status=DispatchRoute.Status.PLANNED,
+        )
+        route.matches.set(matches)
+        route.briefing_text = generate_briefing(route)
+        route.save(update_fields=['briefing_text'])
+        return 1
 
     data = create_data_model(matches)
 
