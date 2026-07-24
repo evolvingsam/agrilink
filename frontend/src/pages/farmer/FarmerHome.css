@@ -1,0 +1,91 @@
+.farmer-home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.home-greeting {
+  padding-bottom: var(--space-6);
+  border-bottom: var(--border-1);
+}
+
+/* Market Alert Banner */
+.market-alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  background: var(--color-harvest-bg);
+  border: 2px solid var(--color-harvest);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.market-alert-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.market-alert-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7a5800;
+  margin-bottom: var(--space-1);
+}
+
+.market-alert-text {
+  font-size: var(--text-sm);
+  color: var(--color-soil);
+  line-height: 1.5;
+}
+
+/* Quick Actions */
+.section-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-soil);
+  margin-bottom: var(--space-4);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.quick-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.quick-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  background: var(--color-white);
+  border: var(--border-2);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-bark);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.quick-action-card:hover {
+  border-color: var(--color-leaf);
+  color: var(--color-leaf);
+}
+
+.quick-action-icon {
+  font-size: 1.75rem;
+}
+
+@media (max-width: 640px) {
+  .quick-action-grid { grid-template-columns: repeat(2, 1fr); }
+}
