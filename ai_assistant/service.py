@@ -171,10 +171,9 @@ def chat(conversation, user_message: str, user) -> dict:
 
     # Load last 10 message pairs for context (keep API cost low)
     past_messages = conversation.messages.all().order_by('timestamp')[:20]
-    history = _build_history_for_api(past_messages)
 
     try:
-        reply = _call_gemma_chat(history, user_message)
+        reply = _call_gemma_chat(past_messages, user_message)
     except requests.RequestException as exc:
         logger.error('Gemma API error: %s', exc)
         return {'reply': 'Sorry, I could not connect to the AI service. Please try again.', 'action_result': None}
